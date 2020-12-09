@@ -5,8 +5,8 @@ CC          := c++ -std=c++11
 TARGET      := libregistration.dylib
 
 #The Directories, Source, Includes, Objects, Binary and Resources
-SRCDIR      := ./
-INCDIR      := ./
+SRCDIR      := source
+INCDIR      := include
 BUILDDIR    := build
 TARGETDIR   := bin
 RESDIR      := res
@@ -40,6 +40,7 @@ remake: cleaner all
 directories:
 	@mkdir -p $(TARGETDIR)
 	@mkdir -p $(BUILDDIR)
+#	@mkdir -p $(RESDIR)
 
 #Clean only Objecst
 clean:
