@@ -1,8 +1,8 @@
-#include "registration/io.h"
-#include "registration/pointcloud.h"
-#include "registration/utils.h"
-#include "registration/registration.h"
-#include "registration/transformation_estimation.h"
+#include "io.h"
+#include "pointcloud.h"
+#include "utils.h"
+#include "registration.h"
+#include "transformation_estimation.h"
 
 #include <vector>
 #include <Eigen/Core>
@@ -56,16 +56,21 @@ int main(int argc, char** argv) {
 			target = std::make_shared<PointCloud>(*source);
 			target->Transform(R);
 			write_pts(*target,filename1+"_randtsfm.pts");
+		} else if (filename2.compare(0,6,"random")==0) {
+			Eigen::Matrix4d R = generate_random_rotation(1, 1, 1, 1);
+			target = std::make_shared<PointCloud>(*source);
+			target->Transform(R);
+			std::cout << "Generated Target Transformation" << std::endl;
+			std::cout << R << std::endl << std::endl;
 		} else {
-			std::cout << "need at least 2 arguments";
 			exit(1);
 		}
 	} else {
 		Eigen::Matrix4d R = generate_random_rotation(1, 1, 1, 1);
 		target = std::make_shared<PointCloud>(*source);
 		target->Transform(R);
-			std::cout << "Generated Target Transformation" << std::endl;
-			std::cout << R << std::endl << std::endl;
+		std::cout << "Generated Target Transformation" << std::endl;
+		std::cout << R << std::endl << std::endl;
 	}
 
 	auto source_d = source->VoxelDownSample(2.0);
@@ -91,10 +96,14 @@ int main(int argc, char** argv) {
 	std::cout << icp_result.correspondence_set_.size() << std::endl << std::endl;
 	std::cout << "Fitness" << std::endl;
 	std::cout << icp_result.fitness_ << std::endl << std::endl;
-		std::cout << "Inlier RMSE" << std::endl;
+	std::cout << "Inlier RMSE" << std::endl;
 	std::cout << icp_result.inlier_rmse_ << std::endl;
-	if (argc > 4)
-	write_pts(*source,"icp_result.pts");
+	if (argc > 3) {
+		std::string filename3(argv[3]);
+		write_pts(*source,filename3);
+	} else {
+		write_pts(*source,"icp_result.pts");
+	}
 
   // std::cout << pcd.points_.size() << std::endl;
   // std::cout << dpcd->points_.size() << std::endl;
