@@ -507,62 +507,62 @@ std::vector<double> PointCloud::ComputePointCloudDistance(
 //     return std::make_tuple(SelectByIndex(indices), indices);
 // }
 //
-// std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
-// PointCloud::RemoveStatisticalOutliers(size_t nb_neighbors,
-//                                       double std_ratio) const {
-//     if (nb_neighbors < 1 || std_ratio <= 0) {
-//         utility::LogError(
-//                 "[RemoveStatisticalOutliers] Illegal input parameters, number "
-//                 "of neighbors and standard deviation ratio must be positive");
-//     }
-//     if (points_.size() == 0) {
-//         return std::make_tuple(std::make_shared<PointCloud>(),
-//                                std::vector<size_t>());
-//     }
-//     KDTreeFlann kdtree;
-//     kdtree.SetGeometry(*this);
-//     std::vector<double> avg_distances = std::vector<double>(points_.size());
-//     std::vector<size_t> indices;
-//     size_t valid_distances = 0;
-//
-// #pragma omp parallel for schedule(static)
-//     for (int i = 0; i < int(points_.size()); i++) {
-//         std::vector<int> tmp_indices;
-//         std::vector<double> dist;
-//         kdtree.SearchKNN(points_[i], int(nb_neighbors), tmp_indices, dist);
-//         double mean = -1.0;
-//         if (dist.size() > 0u) {
-//             valid_distances++;
-//             std::for_each(dist.begin(), dist.end(),
-//                           [](double &d) { d = std::sqrt(d); });
-//             mean = std::accumulate(dist.begin(), dist.end(), 0.0) / dist.size();
-//         }
-//         avg_distances[i] = mean;
-//     }
-//     if (valid_distances == 0) {
-//         return std::make_tuple(std::make_shared<PointCloud>(),
-//                                std::vector<size_t>());
-//     }
-//     double cloud_mean = std::accumulate(
-//             avg_distances.begin(), avg_distances.end(), 0.0,
-//             [](double const &x, double const &y) { return y > 0 ? x + y : x; });
-//     cloud_mean /= valid_distances;
-//     double sq_sum = std::inner_product(
-//             avg_distances.begin(), avg_distances.end(), avg_distances.begin(),
-//             0.0, [](double const &x, double const &y) { return x + y; },
-//             [cloud_mean](double const &x, double const &y) {
-//                 return x > 0 ? (x - cloud_mean) * (y - cloud_mean) : 0;
-//             });
-//     // Bessel's correction
-//     double std_dev = std::sqrt(sq_sum / (valid_distances - 1));
-//     double distance_threshold = cloud_mean + std_ratio * std_dev;
-//     for (size_t i = 0; i < avg_distances.size(); i++) {
-//         if (avg_distances[i] > 0 && avg_distances[i] < distance_threshold) {
-//             indices.push_back(i);
-//         }
-//     }
-//     return std::make_tuple(SelectByIndex(indices), indices);
-// }
+std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
+PointCloud::RemoveStatisticalOutliers(size_t nb_neighbors,
+                                      double std_ratio) const {
+    if (nb_neighbors < 1 || std_ratio <= 0) {
+        fprintf(stderr,
+                "[RemoveStatisticalOutliers] Illegal input parameters, number "
+                "of neighbors and standard deviation ratio must be positive");
+    }
+    if (points_.size() == 0) {
+        return std::make_tuple(std::make_shared<PointCloud>(),
+                               std::vector<size_t>());
+    }
+    KDTreeFlann kdtree;
+    kdtree.SetGeometry(*this);
+    std::vector<double> avg_distances = std::vector<double>(points_.size());
+    std::vector<size_t> indices;
+    size_t valid_distances = 0;
+
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < int(points_.size()); i++) {
+        std::vector<int> tmp_indices;
+        std::vector<double> dist;
+        kdtree.SearchKNN(points_[i], int(nb_neighbors), tmp_indices, dist);
+        double mean = -1.0;
+        if (dist.size() > 0u) {
+            valid_distances++;
+            std::for_each(dist.begin(), dist.end(),
+                          [](double &d) { d = std::sqrt(d); });
+            mean = std::accumulate(dist.begin(), dist.end(), 0.0) / dist.size();
+        }
+        avg_distances[i] = mean;
+    }
+    if (valid_distances == 0) {
+        return std::make_tuple(std::make_shared<PointCloud>(),
+                               std::vector<size_t>());
+    }
+    double cloud_mean = std::accumulate(
+            avg_distances.begin(), avg_distances.end(), 0.0,
+            [](double const &x, double const &y) { return y > 0 ? x + y : x; });
+    cloud_mean /= valid_distances;
+    double sq_sum = std::inner_product(
+            avg_distances.begin(), avg_distances.end(), avg_distances.begin(),
+            0.0, [](double const &x, double const &y) { return x + y; },
+            [cloud_mean](double const &x, double const &y) {
+                return x > 0 ? (x - cloud_mean) * (y - cloud_mean) : 0;
+            });
+    // Bessel's correction
+    double std_dev = std::sqrt(sq_sum / (valid_distances - 1));
+    double distance_threshold = cloud_mean + std_ratio * std_dev;
+    for (size_t i = 0; i < avg_distances.size(); i++) {
+        if (avg_distances[i] > 0 && avg_distances[i] < distance_threshold) {
+            indices.push_back(i);
+        }
+    }
+    return std::make_tuple(SelectByIndex(indices), indices);
+}
 //
 // std::tuple<Eigen::Vector3d, Eigen::Matrix3d>
 // PointCloud::ComputeMeanAndCovariance() const {

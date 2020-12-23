@@ -32,9 +32,11 @@ int main(int argc, char** argv) {
 	std::string filename1(argv[1]);
 	if (filename1.compare(filename1.size()-4,4,".stl")==0) {
 		source = std::make_shared<PointCloud>(read_stl(filename1));
-		write_pts(*source,filename1+".pts");
+		write_pcd(*source,filename1+".pcd");
+	} else if (filename1.compare(filename1.size()-4,4,".pcd")==0) {
+		source = std::make_shared<PointCloud>(read_pcd(filename1));
 	} else if (filename1.compare(filename1.size()-4,4,".pts")==0) {
-		source = std::make_shared<PointCloud>(read_pts(filename1));
+		source = std::make_shared<PointCloud>(read_pcd(filename1));
 	} else {
 		exit(1);
 	}
@@ -48,14 +50,16 @@ int main(int argc, char** argv) {
 		std::string filename2(argv[2]);
 		if (filename2.compare(filename2.size()-4,4,".stl")==0) {
 			target = std::make_shared<PointCloud>(read_stl(filename2));
-			write_pts(*target,filename2+".pts");
+			write_pcd(*target,filename2+".pcd");
+		} else if (filename2.compare(filename2.size()-4,4,".pcd")==0) {
+			target = std::make_shared<PointCloud>(read_pcd(filename2));
 		} else if (filename2.compare(filename2.size()-4,4,".pts")==0) {
-			target = std::make_shared<PointCloud>(read_pts(filename2));
+			target = std::make_shared<PointCloud>(read_pcd(filename2));
 	 	} else if (filename2.compare(filename2.size()-4,4,".txt")==0) {
 			Eigen::Matrix4d R = read_rotation(filename2);
 			target = std::make_shared<PointCloud>(*source);
 			target->Transform(R);
-			write_pts(*target,filename1+"_randtsfm.pts");
+			write_pcd(*target,filename1+"_randtsfm.pcd");
 		} else if (filename2.compare(0,6,"random")==0) {
 			Eigen::Matrix4d R = generate_random_rotation(1, 1, 1, 1);
 			target = std::make_shared<PointCloud>(*source);
@@ -107,9 +111,9 @@ int main(int argc, char** argv) {
 	std::cout << ransac_result.inlier_rmse_ << std::endl;
 	if (argc > 3) {
 		std::string filename3(argv[3]);
-		write_pts(*source,filename3);
+		write_pcd(*source,filename3);
 	} else {
-		write_pts(*source,"ransac_result.pts");
+		write_pcd(*source,"ransac_result.pcd");
 	}
 
   // std::cout << pcd.points_.size() << std::endl;

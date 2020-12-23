@@ -10,6 +10,23 @@
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 
+std::vector<Eigen::Vector3d> ReadPointsFromFile(std::string filename) {
+  std::vector<Eigen::Vector3d> points;
+  if (filename.compare(filename.size()-4,4,".stl")==0) {
+    points = read_stl(filename);
+  } else if (filename.compare(filename.size()-5,5,".xyzm")==0) {
+    points = read_xyzm(filename);
+  } else if (filename.compare(filename.size()-4,4,".pts")==0) {
+    points = read_pcd(filename);
+  } else if (filename.compare(filename.size()-4,4,".pcd")==0) {
+    points = read_pcd(filename);
+  } else {
+    fprintf(stderr,"could not recognize file extension\n");
+    exit(1);
+  }
+  return points;
+}
+
 std::vector<Eigen::Vector3d> read_stl(std::string path) {
 
   FILE* fp = fopen(path.c_str(),"rb");
@@ -45,7 +62,7 @@ std::vector<Eigen::Vector3d> read_stl(std::string path) {
   return points;
 }
 
-std::vector<Eigen::Vector3d> read_pts(std::string filename) {
+std::vector<Eigen::Vector3d> read_pcd(std::string filename) {
 
   FILE* fp = fopen(filename.c_str(), "rb");
   if (fp == NULL) {
@@ -67,7 +84,7 @@ std::vector<Eigen::Vector3d> read_pts(std::string filename) {
   return points;
 }
 
-void write_pts(const PointCloud& pcd, std::string filename) {
+void write_pcd(const PointCloud& pcd, std::string filename) {
   FILE* fp = fopen(filename.c_str(), "wb");
   unsigned long size = pcd.points_.size();
   fwrite(&size, sizeof(unsigned long), 1, fp);
@@ -130,32 +147,31 @@ void write_pts(const PointCloud& pcd, std::string filename) {
 //   fclose(ply_file);
 //
 // }
-//
-// void read_xyzm(char* path, size_t* n_points, float* points, float* normals, unsigned char* colors) {
-//
-//   FILE* xyzm_file = fopen(path,"rb");
-//   if (xyzm_file == NULL) {
-//     printf("failed to open file\n");
-//     exit(1);
-//   }
-//   int height;
-//   int width;
-//   int ret = fscanf(xyzm_file, "image size width x height = %d x %d",&width,&height);
-//   if (ret!=2) {
-//     printf("unsupported file format\n");
-//     fclose(xyzm_file);
-//     exit(1);
-//   }
-//   *n_points = width * height;
-//   while(fgetc(xyzm_file)==0);
-//   fseek(xyzm_file,-1,SEEK_CUR);
-//   points = new float[3*width*height];
-//   colors = new unsigned char[3*width*height];
-//   // unsigned char* mask = new unsigned char[width*height];
-//   fread(points,sizeof(float),3*width*height,xyzm_file);
-//   fread(colors,sizeof(unsigned char),3*width*height,xyzm_file);
-//   // fread(mask,sizeof(unsigned char),width*height,xyzm_file);
-//   fclose(xyzm_file);
-//   // this->mask = mask;
-//   printf("successfully read xyzm file\n");
-// }
+
+std::vector<Eigen::Vector3d> read_xyzm(std::string filename) {
+
+  FILE* fp = fopen(filename.c_str(),"rb");
+  if (fp == NULL) {
+    fprintf(stderr,"failed to open file\n");
+    exit(1);
+  }
+  int height;
+  int width;
+  int ret = fscanf(fp, "image size width x height = %d x %d", &width, &height);
+  if (ret!=2) {
+    printf("unsupported file format\n");
+    fclose(fp);
+    exit(1);
+  }
+  while(fgetc(fp)==0);
+  fseek(fp,-1,SEEK_CUR);
+  std::vector<Eigen::Vector3d> points(width*height);
+  float buffer[3];
+  for (size_t i = 0; i < (size_t)width*height; i++) {
+    fread(buffer, sizeof(float), 3, fp);
+    points[i] = Eigen::Vector3d(buffer[0], buffer[1], buffer[2]);
+  }
+  fclose(fp);
+
+  return points;
+}

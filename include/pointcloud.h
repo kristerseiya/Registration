@@ -20,7 +20,7 @@ public:
     /// \param points Points coordinates.
     PointCloud(const std::vector<Eigen::Vector3d> &points) : points_(points) {}
     PointCloud(std::vector<Eigen::Vector3d>&& points) : points_(std::move(points)) {}
-    PointCloud(const PointCloud& other) : points_(other.points_) {}
+    // PointCloud(const PointCloud& other) : points_(other.points_) {}
     ~PointCloud()  {}
 
 public:
@@ -148,14 +148,14 @@ public:
     // std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
     // RemoveRadiusOutliers(size_t nb_points, double search_radius) const;
     //
-    // /// \brief Function to remove points that are further away from their
-    // /// \p nb_neighbor neighbors in average.
-    // ///
-    // /// \param nb_neighbors Number of neighbors around the target point.
-    // /// \param std_ratio Standard deviation ratio.
-    // std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
-    // RemoveStatisticalOutliers(size_t nb_neighbors, double std_ratio) const;
-    //
+    // / \brief Function to remove points that are further away from their
+    // / \p nb_neighbor neighbors in average.
+    // /
+    // / \param nb_neighbors Number of neighbors around the target point.
+    // / \param std_ratio Standard deviation ratio.
+    std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
+    RemoveStatisticalOutliers(size_t nb_neighbors, double std_ratio) const;
+
 
     //
     // /// Function to compute the mean and covariance matrix
