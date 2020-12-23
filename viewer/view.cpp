@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <memory>
 #include <iostream>
+#include <string>
 
 #include "open3d/geometry/PointCloud.h"
 #include "open3d/visualization/utility/DrawGeometry.h"
@@ -36,9 +37,6 @@ std::shared_ptr<geometry::PointCloud> read_pcd(char* filename) {
 
   fclose(fp);
 
-  // std::shared_ptr<geometry::PointCloud> pcd = std::make_shared<geometry::PointCloud>();
-  // pcd->points_ = points;
-
   return pcd;
 }
 
@@ -69,18 +67,48 @@ int main(int argc, char** argv) {
   colors[1] = Eigen::Vector3d(0, 0.651, 0.929);
 
   std::vector< std::shared_ptr<const geometry::Geometry> > geometries;
+  // for (int i = 1; i < argc; i++) {
+  //   std::shared_ptr<geometry::PointCloud> pcd = read_pcd(argv[i]);
+  //   // pcd->PaintUniformColor(colors[i % 2]);
+  //   geometries.push_back(pcd);
+  // }
+
+  char buffer[10];
+  std::string input;
+  int r, g, b;
+  Eigen::Vector3d color;
+  printf("Set color for the point clouds\n");
+  printf("type \"custom\" to enter RGB value\n");
+  printf("Hit ENTER without typing anything to use default color\n\n");
   for (int i = 1; i < argc; i++) {
     std::shared_ptr<geometry::PointCloud> pcd = read_pcd(argv[i]);
-    // pcd->PaintUniformColor(colors[i % 2]);
+    printf("Color for Point Cloud #%d: ", i);
+    fgets(buffer, 9, stdin);
+    input.assign(buffer);
+    if (input.size()==1) {
+      /* use default */
+    } else if (input.compare(0,3,"red")==0) {
+      color[0] = 1.; color[1] = 0.; color[2] = 0.;
+      pcd->PaintUniformColor(color);
+    } else if (input.compare(0,4,"blue")==0) {
+      color[0] = 0.; color[1] = 0.; color[2] = 1.;
+      pcd->PaintUniformColor(color);
+    } else if (input.compare(0,5,"green")==0) {
+      color[0] = 0.; color[1] = 1.; color[2] = 0.;
+      pcd->PaintUniformColor(color);
+    } else if (input.compare(0,6,"custom")==0) {
+      printf("Enter RGB numbers <space separated>: ");
+      scanf("%d %d %d", &r, &g, &b);
+      color[0] = r / 255.; color[1] = g / 255.; color[2] = b / 255.;
+      pcd->PaintUniformColor(color);
+    } else {
+      printf("did not understand input\n");
+      printf("using default color\n");
+    }
     geometries.push_back(pcd);
+    printf("\n");
   }
 
-// 	auto pcd = read_pts(argv[1]);
-// 	for (int i = 0; i < 5; i++) {
-// 		std::cout << pcd->points_[i].transpose() << std::endl;
-// 	}
-
-// 	geometries.push_back(pcd);
   visualization::DrawGeometries(geometries);
   exit(0);
 }

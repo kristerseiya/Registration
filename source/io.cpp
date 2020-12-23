@@ -66,6 +66,7 @@ std::vector<Eigen::Vector3d> read_pcd(std::string filename) {
 
   FILE* fp = fopen(filename.c_str(), "rb");
   if (fp == NULL) {
+    fprintf(stderr, "Could not read file %s\n", filename.c_str());
     exit(1);
   }
 

@@ -1,0 +1,73 @@
+{
+	"source": {
+		"path": "data/source.pcd",
+		"downsample": true,
+		"voxel_size": 2.0
+	},
+
+	"target": {
+		"path": "data/target.pcd",
+		"downsample": true,
+		"voxel_size": 2.0
+	},
+
+	"output_path": "data/result.pcd",
+
+	"registration_type": "RANSAC",
+
+	// for normal estimation
+	"fast_normal_computation": true,
+
+	"kdtree_search_type": "knn", /* or "radius" or "hybrid" */
+
+	// KD Tree Parameters
+	// used for FPFH Feature computation
+	"kdtree_parameters": [
+		// KNN Search Parameters
+		{
+			"knn": 30
+		},
+		// Radius Search Parameters
+		{
+			"radius": 0.1
+		},
+		// Hybrid Search Parameters
+		{
+			"max_knn": 30,
+			"radius": 0.1
+		}
+	],
+
+
+	// Registration Parameters
+	"registration_parameters": [
+		// ICP Parameters
+		{
+			"estimation_type": "PointToPlane", /* or "PointToPoint" */
+			"max_iteration": 30,
+			"max_correspondence_distance": 3.0,
+			"relative_fitness": 1e-6,
+			"relative_rmse": 1e-6
+		},
+		// RANSAC Parameters
+		{
+			"based_on": "feature", /* or "correspondence" */
+			"max_iteration": 100000,
+			"confidence": 0.999,
+			"max_correspondence_distance": 3.0,
+			"ransac_n": 3,
+			"estimation_type": "PointToPoint", /* or "PointToPlane" */
+			"mutual_filter": true
+		},
+		// Fast Parameters
+		{
+			"division_factor": 1.4,
+			"use_absolute_scale": false,
+			"decrease_mu": true,
+			"max_correspondence_distance": 0.025,
+			"iteration_number": 64,
+			"tuple_scale": 0.95,
+			"max_tuple_count": 1000
+		}
+	]
+}
