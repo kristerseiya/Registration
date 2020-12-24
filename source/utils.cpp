@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-Eigen::Matrix4d generate_random_rotation(double rx, double ry, double rz, double max_offset) {
+Eigen::Matrix4d GenerateRandomRotation(double rx, double ry, double rz, double max_offset) {
   unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
   std::uniform_real_distribution<double> distribution(0.0,1.0);
@@ -58,7 +58,7 @@ Eigen::Matrix4d generate_random_rotation(double rx, double ry, double rz, double
   return R;
 }
 
-PointCloud& add_noise(PointCloud& pcd, double sigma) {
+PointCloud& AddNoise(PointCloud& pcd, double sigma) {
 
   unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);

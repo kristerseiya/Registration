@@ -28,7 +28,7 @@
 // Copyright (c) 2020 Ignacio Vizzo, Cyrill Stachniss, University of Bonn.
 // ----------------------------------------------------------------------------
 
-#include "robust_kernel.h"
+#include "registration+robust_kernel.h"
 
 #include <algorithm>
 #include <cmath>

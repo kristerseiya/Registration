@@ -24,12 +24,12 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "transformation_estimation.h"
+#include "registration+transformation_estimation.h"
 
 #include <Eigen/Geometry>
 
 #include "pointcloud.h"
-#include "eigen.h"
+#include "+eigen.h"
 
 double TransformationEstimationPointToPoint::ComputeRMSE(
         const PointCloud &source,

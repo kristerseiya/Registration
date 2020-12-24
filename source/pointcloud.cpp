@@ -31,8 +31,8 @@
 #include <unordered_map>
 
 #include "kdtree_flann.h"
-#include "eigen.h"
-#include "helper.h"
+#include "+eigen.h"
+#include "+helper.h"
 #include "io.h"
 
 PointCloud::PointCloud(const std::string filename) {

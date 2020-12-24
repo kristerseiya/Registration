@@ -5,7 +5,8 @@
 #include <tuple>
 #include <vector>
 
-#include "kdtree_search_param.h"
+#include "kdtree_flann+search_param.h"
+
 
 /// \class PointCloud
 ///
@@ -19,7 +20,7 @@ public:
     ///
     /// \param points Points coordinates.
     PointCloud(const std::string filename);
-    
+
     PointCloud(const std::vector<Eigen::Vector3d> &points,
                const std::vector<Eigen::Vector3d> &normals = std::vector<Eigen::Vector3d>(),
                const std::vector<Eigen::Vector3d> &colors = std::vector<Eigen::Vector3d>()

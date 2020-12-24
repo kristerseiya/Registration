@@ -29,7 +29,7 @@
 #include "kdtree_flann.h"
 #include "pointcloud.h"
 #include "feature.h"
-#include "helper.h"
+#include "+helper.h"
 
 #include <stdio.h>
 

@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "transformation_estimation.h"
+#include "registration+transformation_estimation.h"
 
 class PointCloud;
 

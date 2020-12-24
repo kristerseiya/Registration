@@ -29,10 +29,13 @@
 #include <Eigen/Core>
 #include <tuple>
 #include <vector>
+#include <Eigen/Geometry>
+#include <memory>
 
 #include "correspondence_checker.h"
-#include "transformation_estimation.h"
-#include "eigen.h"
+#include "registration+transformation_estimation.h"
+#include "+eigen.h"
+#include "registration+robust_kernel.h"
 
 class PointCloud;
 
@@ -231,3 +234,126 @@ Eigen::Matrix6d GetInformationMatrixFromPointClouds(
         const PointCloud &target,
         double max_correspondence_distance,
         const Eigen::Matrix4d &transformation);
+
+        /// \class FastGlobalRegistrationOption
+        ///
+        /// \brief Options for FastGlobalRegistration.
+        class FastGlobalRegistrationOption {
+        public:
+            /// \brief Parameterized Constructor.
+            ///
+            /// \param division_factor Division factor used for graduated non-convexity.
+            /// \param use_absolute_scale Measure distance in absolute scale (1) or in
+            /// scale relative to the diameter of the model (0).
+            /// \param decrease_mu Set
+            /// to `true` to decrease scale mu by division_factor for graduated
+            /// non-convexity.
+            /// \param maximum_correspondence_distance Maximum
+            /// correspondence distance (also see comment of USE_ABSOLUTE_SCALE).
+            /// \param iteration_number Maximum number of iterations.
+            /// \param tuple_scale Similarity measure used for tuples of feature points.
+            /// \param maximum_tuple_count Maximum numer of tuples.
+            FastGlobalRegistrationOption(double division_factor = 1.4,
+                                         bool use_absolute_scale = false,
+                                         bool decrease_mu = true,
+                                         double maximum_correspondence_distance = 0.025,
+                                         int iteration_number = 64,
+                                         double tuple_scale = 0.95,
+                                         int maximum_tuple_count = 1000)
+                : division_factor_(division_factor),
+                  use_absolute_scale_(use_absolute_scale),
+                  decrease_mu_(decrease_mu),
+                  maximum_correspondence_distance_(maximum_correspondence_distance),
+                  iteration_number_(iteration_number),
+                  tuple_scale_(tuple_scale),
+                  maximum_tuple_count_(maximum_tuple_count) {}
+            ~FastGlobalRegistrationOption() {}
+
+        public:
+            /// Division factor used for graduated non-convexity.
+            double division_factor_;
+            /// Measure distance in absolute scale (1) or in scale relative to the
+            /// diameter of the model (0).
+            bool use_absolute_scale_;
+            /// Set to `true` to decrease scale mu by division_factor for graduated
+            /// non-convexity.
+            bool decrease_mu_;
+            /// Maximum correspondence distance (also see comment of
+            /// USE_ABSOLUTE_SCALE).
+            double maximum_correspondence_distance_;
+            /// Maximum number of iterations.
+            int iteration_number_;
+            /// Similarity measure used for tuples of feature points.
+            double tuple_scale_;
+            /// Maximum number of tuples..
+            int maximum_tuple_count_;
+        };
+
+        RegistrationResult FastGlobalRegistration(
+                const PointCloud &source,
+                const PointCloud &target,
+                const Feature &source_feature,
+                const Feature &target_feature,
+                const FastGlobalRegistrationOption &option =
+                        FastGlobalRegistrationOption());
+
+                        class TransformationEstimationForColoredICP : public TransformationEstimation {
+                        public:
+                            ~TransformationEstimationForColoredICP() override{};
+
+                            TransformationEstimationType GetTransformationEstimationType()
+                                    const override {
+                                return type_;
+                            };
+                            explicit TransformationEstimationForColoredICP(
+                                    double lambda_geometric = 0.968,
+                                    std::shared_ptr<RobustKernel> kernel = std::make_shared<L2Loss>())
+                                : lambda_geometric_(lambda_geometric), kernel_(std::move(kernel)) {
+                                if (lambda_geometric_ < 0 || lambda_geometric_ > 1.0) {
+                                    lambda_geometric_ = 0.968;
+                                }
+                            }
+
+                        public:
+                            double ComputeRMSE(const PointCloud &source,
+                                               const PointCloud &target,
+                                               const CorrespondenceSet &corres) const override;
+                            Eigen::Matrix4d ComputeTransformation(
+                                    const PointCloud &source,
+                                    const PointCloud &target,
+                                    const CorrespondenceSet &corres) const override;
+
+                        public:
+                            double lambda_geometric_ = 0.968;
+                            /// shared_ptr to an Abstract RobustKernel that could mutate at runtime.
+                            std::shared_ptr<RobustKernel> kernel_ = std::make_shared<L2Loss>();
+
+                        private:
+                            const TransformationEstimationType type_ =
+                                    TransformationEstimationType::ColoredICP;
+                        };
+
+                        /// \brief Function for Colored ICP registration.
+                        ///
+                        /// This is implementation of following paper
+                        /// J. Park, Q.-Y. Zhou, V. Koltun,
+                        /// Colored Point Cloud Registration Revisited, ICCV 2017.
+                        ///
+                        /// \param source The source point cloud.
+                        /// \param target The target point cloud.
+                        /// \param max_distance Maximum correspondence points-pair distance.
+                        /// \param init Initial transformation estimation.
+                        /// Default value: array([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.],
+                        /// [0., 0., 0., 1.]]). \param criteria  Convergence criteria. \param
+                        /// \param estimation TransformationEstimationForColoredICP method. Can only
+                        /// change the lambda_geometric value and the robust kernel used in the
+                        /// optimization
+                        RegistrationResult RegistrationColoredICP(
+                                const PointCloud &source,
+                                const PointCloud &target,
+                                double max_distance,
+                                bool verbose = true,
+                                const Eigen::Matrix4d &init = Eigen::Matrix4d::Identity(),
+                                const TransformationEstimationForColoredICP &estimation =
+                                        TransformationEstimationForColoredICP(),
+                                const ICPConvergenceCriteria &criteria = ICPConvergenceCriteria());

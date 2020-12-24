@@ -1,15 +1,15 @@
-#include "colored_icp.h"
+// #include "colored_icp.h"
 
 #include <Eigen/Dense>
 #include <iostream>
 #include <stdio.h>
 
 #include "kdtree_flann.h"
-#include "kdtree_search_param.h"
+// #include "kdtree_search_param.h"
 #include "pointcloud.h"
-#include "robust_kernel.h"
+#include "registration+robust_kernel.h"
 #include "registration.h"
-#include "eigen.h"
+#include "+eigen.h"
 
 namespace {
 

@@ -2,9 +2,9 @@
 #include "registration/pointcloud.h"
 #include "registration/utils.h"
 #include "registration/registration.h"
-#include "registration/fast_global_registration.h"
+// #include "registration/fast_global_registration.h"
 #include "registration/feature.h"
-#include "registration/colored_icp.h"
+// #include "registration/colored_icp.h"
 
 #include <iostream>
 #include <fstream>
