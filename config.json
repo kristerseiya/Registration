@@ -1,56 +1,72 @@
 {
+	// inputs
 	"source": {
-		"path": "data/source.pcd",
-		"downsample": true,
-		"voxel_size": 2.0
+		"path": "data/scene1.pcd",
+		"downsample": false,
+		"voxel_size": 2.0, // only matters if "downsample" is true
+		"remove_outliers": false,
+		"nb_neighbors": 20,
+		"std_radio": 1.0
 	},
 
 	"target": {
-		"path": "data/target.pcd",
-		"downsample": true,
-		"voxel_size": 2.0
+		"path": "data/scene2.pcd",
+		"downsample": false,
+		"voxel_size": 2.0, // only matters if "downsample" is true
+		"remove_outliers": false,
+		"nb_neighbors": 20,
+		"std_radio": 1.0
 	},
 
+	// output file name
 	"output_path": "data/result.pcd",
 
-	"registration_type": "RANSAC",
+	// option: "ICP", "RANSAC", "Fast"
+	"registration_type": "ICP",
 
 	// for normal estimation
 	"fast_normal_computation": true,
 
-	"kdtree_search_type": "knn", /* or "radius" or "hybrid" */
+	// option: "knn", "radius", "hybrid"
+	"kdtree_search_type": "knn",
 
 	// KD Tree Parameters
 	// used for FPFH Feature computation
-	"kdtree_parameters": [
+	"kdtree_parameters": {
 		// KNN Search Parameters
-		{
+		"knn": {
 			"knn": 30
 		},
 		// Radius Search Parameters
-		{
+		"radius": {
 			"radius": 0.1
 		},
 		// Hybrid Search Parameters
-		{
+		"hybrid": {
 			"max_knn": 30,
 			"radius": 0.1
 		}
-	],
+	},
 
 
 	// Registration Parameters
-	"registration_parameters": [
+	"registration_parameters": {
 		// ICP Parameters
-		{
-			"estimation_type": "PointToPlane", /* or "PointToPoint" */
+		"icp": {
+			// option: "PointToPoint", "PointToPlane", "Colored"
+			"estimation_type": "Colored",
 			"max_iteration": 30,
 			"max_correspondence_distance": 3.0,
 			"relative_fitness": 1e-6,
-			"relative_rmse": 1e-6
+			"relative_rmse": 1e-6,
+
+			// below are for Colored ICP
+			"lambda_geometric": 0.968,
+			// option: "L2", "L1", "Huber", "Cauchy", "GM", "Tukey"
+			"robust_kernel": "L2"
 		},
 		// RANSAC Parameters
-		{
+		"ransac": {
 			"based_on": "feature", /* or "correspondence" */
 			"max_iteration": 100000,
 			"confidence": 0.999,
@@ -60,7 +76,7 @@
 			"mutual_filter": true
 		},
 		// Fast Parameters
-		{
+		"fast": {
 			"division_factor": 1.4,
 			"use_absolute_scale": false,
 			"decrease_mu": true,
@@ -69,5 +85,5 @@
 			"tuple_scale": 0.95,
 			"max_tuple_count": 1000
 		}
-	]
+	}
 }

@@ -4,6 +4,7 @@
 #include "registration/registration.h"
 #include "registration/fast_global_registration.h"
 #include "registration/feature.h"
+#include "registration/colored_icp.h"
 
 #include <iostream>
 #include <fstream>
@@ -19,7 +20,7 @@ int main(int argc, char** argv) {
   config_file >> config;
 
   std::shared_ptr<PointCloud> source =
-    std::make_shared<PointCloud>(ReadPointsFromFile(config["source"]["path"].asString()));
+    std::make_shared<PointCloud>(config["source"]["path"].asString());
 
   std::shared_ptr<PointCloud> source_d;
   if (config["source"]["downsample"].asBool()) {
@@ -29,7 +30,7 @@ int main(int argc, char** argv) {
   }
 
   std::shared_ptr<PointCloud> target =
-    std::make_shared<PointCloud>(ReadPointsFromFile(config["target"]["path"].asString()));
+    std::make_shared<PointCloud>(config["target"]["path"].asString());
 
   std::shared_ptr<PointCloud> target_d;
   if (config["target"]["downsample"].asBool()) {
@@ -44,37 +45,63 @@ int main(int argc, char** argv) {
 
   if (reg_type == "ICP") {
 
-      std::string icp_type = config["registration_parameters"][0]["estimation_type"].asString();
+      std::string icp_type = config["registration_parameters"]["icp"]["estimation_type"].asString();
 
-      ICPConvergenceCriteria icp_param(config["registration_parameters"][0]["relative_fitness"].asDouble(),
-                                       config["registration_parameters"][0]["relative_rmse"].asDouble(),
-                                       config["registration_parameters"][0]["max_iteration"].asInt());
+      ICPConvergenceCriteria icp_param(config["registration_parameters"]["icp"]["relative_fitness"].asDouble(),
+                                       config["registration_parameters"]["icp"]["relative_rmse"].asDouble(),
+                                       config["registration_parameters"]["icp"]["max_iteration"].asInt());
 
-      if ( (icp_type == "PointToPlane") && !target_d->HasNormals() ) {
+      if ( ( (icp_type == "PointToPlane") || (icp_type == "Colored") ) && !target_d->HasNormals() ) {
           printf("Estimating normals for target\n");
           target_d->EstimateNormals();
       }
 
-      TransformationEstimation* estimation_type;
-      TransformationEstimationPointToPoint point2point_estimation;
-      TransformationEstimationPointToPlane point2plane_estimation;
-      if (icp_type == "PointToPoint") {
-          estimation_type = &point2point_estimation;
-      } else if (icp_type == "PointToPlane") {
-          estimation_type = &point2plane_estimation;
+      RegistrationResult icp_result;
+
+      if (icp_type != "Colored") {
+
+          std::shared_ptr<TransformationEstimation> estimation_type;
+          if (icp_type == "PointToPoint") {
+              estimation_type = std::make_shared<TransformationEstimationPointToPoint>();
+              printf("Performing Point-to-Point ICP Registration...\n");
+          } else if (icp_type == "PointToPlane") {
+              estimation_type = std::make_shared<TransformationEstimationPointToPlane>();
+              printf("Performing Point-to-Plane ICP Registration...\n");
+          } else {
+              printf("Could not interpret ICP Registration Estimation Type\n");
+              exit(1);
+          }
+
+          icp_result = RegistrationICP(*source_d, *target_d,
+                config["registration_parameters"]["icp"]["max_correspondence_distance"].asDouble(),
+                true, Eigen::Matrix4d::Identity(), *estimation_type,
+                icp_param);
+
       } else {
-          printf("Could not interpret ICP Registration Estimation Type\n");
-          exit(1);
+
+          double lambda_geometric = config["registration_parameters"]["icp"]["lambda_geometric"].asDouble();
+          std::string kernel_type = config["registration_parameters"]["icp"]["robust_kernel"].asString();
+          std::shared_ptr<RobustKernel> kernel;
+          if (kernel_type == "L2") {
+              kernel = std::make_shared<L2Loss>();
+          } else if (kernel_type == "L1") {
+              kernel = std::make_shared<L1Loss>();
+          } else {
+              printf("Could not interpret robust kernel type\n");
+              exit(1);
+          }
+
+          TransformationEstimationForColoredICP estimation(lambda_geometric, kernel);
+          printf("Performing Colored ICP Registration...\n");
+          icp_result = RegistrationColoredICP(*source_d, *target_d,
+                config["registration_parameters"]["icp"]["max_correspondence_distance"].asDouble(),
+                true, Eigen::Matrix4d::Identity(), estimation,
+                icp_param);
+
       }
 
-      printf("Performing ICP Registration...\n");
-      RegistrationResult icp_result = RegistrationICP(*source_d, *target_d,
-            config["registration_parameters"][0]["max_correspondence_distance"].asDouble(),
-            true, Eigen::Matrix4d::Identity(), TransformationEstimationPointToPoint(),
-            icp_param);
-
       source->Transform(icp_result.transformation_);
-      write_pcd(*source, output_path);
+      WritePCD(*source, output_path);
       std::cout << std::endl << "ICP Transformation" << std::endl;
       std::cout << icp_result.transformation_ << std::endl << std::endl;
       std::cout << "Number of Correspondence Sets" << std::endl;
@@ -86,10 +113,10 @@ int main(int argc, char** argv) {
 
   } else if (reg_type == "RANSAC") {
 
-      std::string ransac_base = config["registration_parameters"][1]["based_on"].asString();
-      std::string ransac_type = config["registration_parameters"][1]["estimation_type"].asString();
-      RANSACConvergenceCriteria ransac_param(config["registration_parameters"][1]["max_iteration"].asInt(),
-                                              config["registration_parameters"][1]["confidence"].asDouble());
+      std::string ransac_base = config["registration_parameters"]["ransac"]["based_on"].asString();
+      std::string ransac_type = config["registration_parameters"]["ransac"]["estimation_type"].asString();
+      RANSACConvergenceCriteria ransac_param(config["registration_parameters"]["ransac"]["max_iteration"].asInt(),
+                                              config["registration_parameters"]["ransac"]["confidence"].asDouble());
 
       if ( (ransac_type == "PointToPlane") && !target_d->HasNormals() ) {
           target_d->EstimateNormals();
@@ -125,10 +152,10 @@ int main(int argc, char** argv) {
 
           printf("Performing RANSAC Registration Based on FPFH Features...\n");
           ransac_result = RegistrationRANSACBasedOnFeatureMatching(*source_d, *target_d,
-              *source_d_fpfh, *target_d_fpfh, config["registration_parameters"][1]["mutual_filter"].asBool(),
-              config["registration_parameters"][1]["max_correspondence_distance"].asDouble(),
+              *source_d_fpfh, *target_d_fpfh, config["registration_parameters"]["ransac"]["mutual_filter"].asBool(),
+              config["registration_parameters"]["ransac"]["max_correspondence_distance"].asDouble(),
               *estimation_type,
-              config["registration_parameters"][1]["ransac_n"].asInt(), {},
+              config["registration_parameters"]["ransac"]["ransac_n"].asInt(), {},
               ransac_param);
 
       } else {
@@ -137,7 +164,7 @@ int main(int argc, char** argv) {
       }
 
       source->Transform(ransac_result.transformation_);
-      write_pcd(*source, output_path);
+      WritePCD(*source, output_path);
       std::cout << std::endl << "RANSAC Registration Result" << std::endl;
       std::cout << ransac_result.transformation_ << std::endl << std::endl;
       std::cout << "Number of Correspondence Sets" << std::endl;
@@ -149,13 +176,13 @@ int main(int argc, char** argv) {
 
   } else if (reg_type == "Fast") {
 
-      FastGlobalRegistrationOption fast_param(config["registration_parameters"][2]["division_factor"].asDouble(),
-                                              config["registration_parameters"][2]["use_absolute_scale"].asBool(),
-                                              config["registration_parameters"][2]["decrease_mu"].asBool(),
-                                              config["registration_parameters"][2]["max_correspondence_distance"].asDouble(),
-                                              config["registration_parameters"][2]["iteration_number"].asInt(),
-                                              config["registration_parameters"][2]["tuple_scale"].asDouble(),
-                                              config["registration_parameters"][2]["max_tuple_count"].asInt());
+      FastGlobalRegistrationOption fast_param(config["registration_parameters"]["fast"]["division_factor"].asDouble(),
+                                              config["registration_parameters"]["fast"]["use_absolute_scale"].asBool(),
+                                              config["registration_parameters"]["fast"]["decrease_mu"].asBool(),
+                                              config["registration_parameters"]["fast"]["max_correspondence_distance"].asDouble(),
+                                              config["registration_parameters"]["fast"]["iteration_number"].asInt(),
+                                              config["registration_parameters"]["fast"]["tuple_scale"].asDouble(),
+                                              config["registration_parameters"]["fast"]["max_tuple_count"].asInt());
       if (!source_d->HasNormals()) {
         printf("Estimating normals for source\n");
         source_d->EstimateNormals();
@@ -174,7 +201,7 @@ int main(int argc, char** argv) {
           *source_d_fpfh, *target_d_fpfh, fast_param);
 
       source->Transform(fast_result.transformation_);
-      write_pcd(*source, output_path);
+      WritePCD(*source, output_path);
       std::cout << std::endl << "Fast Global Registration Result" << std::endl;
       std::cout << fast_result.transformation_ << std::endl << std::endl;
       std::cout << "Number of Correspondence Sets" << std::endl;

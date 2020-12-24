@@ -10,26 +10,29 @@
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 
-std::vector<Eigen::Vector3d> ReadPointsFromFile(std::string filename) {
-  std::vector<Eigen::Vector3d> points;
+void ReadDataFromFile(const std::string& filename, std::vector<Eigen::Vector3d>& points,
+                      std::vector<Eigen::Vector3d>& normals,
+                      std::vector<Eigen::Vector3d>& colors) {
   if (filename.compare(filename.size()-4,4,".stl")==0) {
-    points = read_stl(filename);
+    ReadSTL(filename, points, normals, colors);
   } else if (filename.compare(filename.size()-5,5,".xyzm")==0) {
-    points = read_xyzm(filename);
+    ReadXYZM(filename, points, normals, colors);
   } else if (filename.compare(filename.size()-4,4,".pts")==0) {
-    points = read_pcd(filename);
+    ReadPCD(filename, points, normals, colors);
   } else if (filename.compare(filename.size()-4,4,".pcd")==0) {
-    points = read_pcd(filename);
+    ReadPCD(filename, points, normals, colors);
   } else {
     fprintf(stderr,"could not recognize file extension\n");
     exit(1);
   }
-  return points;
+  return;
 }
 
-std::vector<Eigen::Vector3d> read_stl(std::string path) {
+void ReadSTL(const std::string& filename, std::vector<Eigen::Vector3d>& points,
+             std::vector<Eigen::Vector3d>& normals,
+             std::vector<Eigen::Vector3d>& colors) {
 
-  FILE* fp = fopen(path.c_str(),"rb");
+  FILE* fp = fopen(filename.c_str(),"rb");
   if (fp == NULL) {
     printf("failed to open file\n");
     exit(1);
@@ -40,13 +43,12 @@ std::vector<Eigen::Vector3d> read_stl(std::string path) {
   fread(&n_face, sizeof(unsigned int), 1, fp);
   size_t n_points = ((size_t)n_face) * 3;
 
-  std::vector<Eigen::Vector3d> points(n_points);
-  // normals.clear();
-  // points = new float[((size_t)n_face) * 3];
-  // normals = new float[((size_t)n_face) * 9];
-  // short attr;
-  float buffer[9];
+  points.clear();
+  normals.clear();
+  colors.clear();
+  points.resize(n_points);
 
+  float buffer[9];
   for (size_t i = 0; i < n_face; i++) {
     fread(buffer, sizeof(float), 3, fp);
     fread(buffer, sizeof(float), 9, fp);
@@ -58,11 +60,12 @@ std::vector<Eigen::Vector3d> read_stl(std::string path) {
 
   fclose(fp);
 
-//   printf("successfully read stl file\n");
-  return points;
+  return;
 }
 
-std::vector<Eigen::Vector3d> read_pcd(std::string filename) {
+void ReadPCD(const std::string& filename, std::vector<Eigen::Vector3d>& points,
+             std::vector<Eigen::Vector3d>& normals,
+             std::vector<Eigen::Vector3d>& colors) {
 
   FILE* fp = fopen(filename.c_str(), "rb");
   if (fp == NULL) {
@@ -72,26 +75,43 @@ std::vector<Eigen::Vector3d> read_pcd(std::string filename) {
 
   unsigned long size;
   fread(&size, sizeof(unsigned long), 1, fp);
-  std::vector<Eigen::Vector3d> points(size);
+
+  points.clear();
+  normals.clear();
+  colors.clear();
+  points.resize(size);
+
   float buffer[3];
   for (unsigned long i = 0; i < size; i++) {
     fread(buffer, sizeof(float), 3, fp);
     points[i] = Eigen::Vector3d(buffer[0],buffer[1],buffer[2]);
   }
+
+  if (fread(buffer, sizeof(float), 3, fp)==3) {
+    colors.resize(size);
+    colors[0] = Eigen::Vector3d(buffer[0],buffer[1],buffer[2]);
+    for (unsigned long i = 1; i < size; i++) {
+      fread(buffer, sizeof(float), 3, fp);
+      colors[i] = Eigen::Vector3d(buffer[0],buffer[1],buffer[2]);
+    }
+  }
+
   fclose(fp);
 
-  // std::shared_ptr<geometry::PointCloud> pcd = std::make_shared<geometry::PointCloud>();
-  // pcd->points_ = points;
-  return points;
+  return;
 }
 
-void write_pcd(const PointCloud& pcd, std::string filename) {
+void WritePCD(const PointCloud& pcd, const std::string& filename) {
   FILE* fp = fopen(filename.c_str(), "wb");
   unsigned long size = pcd.points_.size();
   fwrite(&size, sizeof(unsigned long), 1, fp);
+  float buffer[3];
   for (auto point : pcd.points_) {
-	float buffer[3];
-	buffer[0] = point[0]; buffer[1] = point[1]; buffer[2] = point[2];
+	  buffer[0] = point[0]; buffer[1] = point[1]; buffer[2] = point[2];
+    fwrite(buffer, sizeof(float), 3, fp);
+  }
+  for (auto color : pcd.colors_) {
+    buffer[0] = color[0]; buffer[1] = color[1]; color[2] = buffer[2];
     fwrite(buffer, sizeof(float), 3, fp);
   }
   fclose(fp);
@@ -149,7 +169,9 @@ void write_pcd(const PointCloud& pcd, std::string filename) {
 //
 // }
 
-std::vector<Eigen::Vector3d> read_xyzm(std::string filename) {
+void ReadXYZM(const std::string& filename, std::vector<Eigen::Vector3d>& points,
+              std::vector<Eigen::Vector3d>& normals,
+              std::vector<Eigen::Vector3d>& colors) {
 
   FILE* fp = fopen(filename.c_str(),"rb");
   if (fp == NULL) {
@@ -166,7 +188,10 @@ std::vector<Eigen::Vector3d> read_xyzm(std::string filename) {
   }
   while(fgetc(fp)==0);
   fseek(fp,-1,SEEK_CUR);
-  std::vector<Eigen::Vector3d> points(width*height);
+  points.clear();
+  normals.clear();
+  colors.clear();
+  points.resize(width*height);
   float buffer[3];
   for (size_t i = 0; i < (size_t)width*height; i++) {
     fread(buffer, sizeof(float), 3, fp);
@@ -174,5 +199,5 @@ std::vector<Eigen::Vector3d> read_xyzm(std::string filename) {
   }
   fclose(fp);
 
-  return points;
+  return;
 }

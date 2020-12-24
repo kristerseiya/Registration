@@ -18,8 +18,17 @@ public:
     /// \brief Parameterized Constructor.
     ///
     /// \param points Points coordinates.
-    PointCloud(const std::vector<Eigen::Vector3d> &points) : points_(points) {}
-    PointCloud(std::vector<Eigen::Vector3d>&& points) : points_(std::move(points)) {}
+    PointCloud(const std::string filename);
+    
+    PointCloud(const std::vector<Eigen::Vector3d> &points,
+               const std::vector<Eigen::Vector3d> &normals = std::vector<Eigen::Vector3d>(),
+               const std::vector<Eigen::Vector3d> &colors = std::vector<Eigen::Vector3d>()
+             ) : points_(points), normals_(normals) , colors_(colors) {}
+
+    PointCloud(std::vector<Eigen::Vector3d>&& points,
+               std::vector<Eigen::Vector3d>&& normals = std::vector<Eigen::Vector3d>(),
+               std::vector<Eigen::Vector3d>&& colors = std::vector<Eigen::Vector3d>()
+             ) : points_(std::move(points)), normals_(std::move(normals)), colors_(std::move(colors)) {}
     // PointCloud(const PointCloud& other) : points_(other.points_) {}
     ~PointCloud()  {}
 

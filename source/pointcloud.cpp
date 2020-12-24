@@ -33,6 +33,11 @@
 #include "kdtree_flann.h"
 #include "eigen.h"
 #include "helper.h"
+#include "io.h"
+
+PointCloud::PointCloud(const std::string filename) {
+    ReadDataFromFile(filename, points_, normals_, colors_);
+}
 
 PointCloud &PointCloud::Clear() {
     points_.clear();
