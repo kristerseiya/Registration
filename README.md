@@ -1,19 +1,23 @@
 # Point Cloud Registration Library
 
-This is a C++ library for exploring registration algorithms
+This is a C++ library for exploring registration algorithms. \
+Supports ICP (point-to-point and point-to-plane), Colored ICP, RANSAC (correspondence based and feature based), Fast Global Registration. \
 C++11 is required
 
 ## Dependencies:
-Eigen, flann, omp, jsoncpp
-
-Open3D is required for visualizer
+Eigen, flann, omp
 
 ## Installation
-run the following command to build the dynamic library
+First, edit the CMakeLists.txt \
+Run the following command to build the dynamic library
 ```bash
-make
+mkdir build && cd build && cmake ..
 ```
 
+## Usage
+Include ```pointcloud.h``` and ```io.h``` to read point clouds from .ply and .stl files. Include ```registration.h``` to perform registration. Include ```feature.h``` to compute FPFH features of a point cloud.
+
+## Coming soon
 run the following command to build the stitch app (must build the dynamic library first)
 ```bash
 make stitch
