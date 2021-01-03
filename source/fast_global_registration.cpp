@@ -30,7 +30,7 @@
 #include "pointcloud.h"
 #include "feature.h"
 #include "registration.h"
-#include "+helper.h"
+#include "helper.h"
 
 static std::vector<std::pair<int, int>> AdvancedMatching(
         const std::vector<PointCloud>& point_cloud_vec,

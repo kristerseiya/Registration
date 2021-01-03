@@ -2,6 +2,7 @@
 #pragma once
 
 #include <random>
+
 template <typename T>
 struct hash_eigen {
     std::size_t operator()(T const& matrix) const {

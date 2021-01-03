@@ -32,7 +32,7 @@
 #include <utility>
 #include <vector>
 
-#include "registration+robust_kernel.h"
+#include "robust_kernel.h"
 
 class PointCloud;
 

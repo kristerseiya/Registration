@@ -7,9 +7,8 @@
 #include "kdtree_flann.h"
 // #include "kdtree_search_param.h"
 #include "pointcloud.h"
-#include "registration+robust_kernel.h"
 #include "registration.h"
-#include "+eigen.h"
+#include "eigen.h"
 
 namespace {
 

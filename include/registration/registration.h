@@ -33,9 +33,9 @@
 #include <memory>
 
 #include "correspondence_checker.h"
-#include "registration+transformation_estimation.h"
-#include "+eigen.h"
-#include "registration+robust_kernel.h"
+#include "transformation_estimation.h"
+#include "eigen.h"
+#include "robust_kernel.h"
 
 class PointCloud;
 

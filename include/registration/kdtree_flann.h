@@ -31,7 +31,7 @@
 #include <vector>
 
 #include "pointcloud.h"
-#include "kdtree_flann+search_param.h"
+#include "kdtree_search_param.h"
 #include "feature.h"
 
 /// @cond

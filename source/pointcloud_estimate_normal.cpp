@@ -30,7 +30,7 @@
 
 #include "kdtree_flann.h"
 #include "pointcloud.h"
-#include "+eigen.h"
+#include "eigen.h"
 
 namespace {
 

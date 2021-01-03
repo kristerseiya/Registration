@@ -24,7 +24,7 @@
 // IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 
-#include "+eigen.h"
+#include "eigen.h"
 
 #include <Eigen/Geometry>
 #include <Eigen/Sparse>

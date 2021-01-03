@@ -5,7 +5,7 @@
 #include <tuple>
 #include <vector>
 
-#include "kdtree_flann+search_param.h"
+#include "kdtree_search_param.h"
 
 
 /// \class PointCloud
