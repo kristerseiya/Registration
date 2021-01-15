@@ -1,7 +1,7 @@
 {
 	// inputs
 	"source": {
-		"path": "data/scene1.pcd",
+		"path": "/Users/Krister/data/PointClouds/gom.stl",
 		"downsample": false,
 		"voxel_size": 2.0, // only matters if "downsample" is true
 		"remove_outliers": false,
@@ -10,7 +10,7 @@
 	},
 
 	"target": {
-		"path": "data/scene2.pcd",
+		"path": "/Users/Krister/data/PointClouds/gom.stl",
 		"downsample": false,
 		"voxel_size": 2.0, // only matters if "downsample" is true
 		"remove_outliers": false,
@@ -19,7 +19,7 @@
 	},
 
 	// output file name
-	"output_path": "data/result.pcd",
+	"output_path": "./result.pcd",
 
 	// option: "ICP", "RANSAC", "Fast"
 	"registration_type": "ICP",
@@ -54,7 +54,7 @@
 		// ICP Parameters
 		"icp": {
 			// option: "PointToPoint", "PointToPlane", "Colored"
-			"estimation_type": "Colored",
+			"estimation_type": "PointToPoint",
 			"max_iteration": 30,
 			"max_correspondence_distance": 3.0,
 			"relative_fitness": 1e-6,

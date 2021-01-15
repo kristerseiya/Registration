@@ -1,33 +1,20 @@
 cmake_minimum_required(VERSION 3.17)
 project(registration)
 
-if (NOT DEFINED CMAKE_CXX_STANDARD)
 set(CMAKE_CXX_STANDARD 11)
-endif()
 
 # EDIT PATHS ACCORDINGLY
 ############################
-if (NOT DEFINED EIGEN_INCLUDE_DIR)
 set(EIGEN_INCLUDE_DIR /usr/local/include)
-endif()
-if (NOT DEFINED FLANN_INCLUDE_DIR)
 set(FLANN_INCLUDE_DIR /usr/local/include)
-endif()
-if (NOT DEFINED OMP_INCLUDE_DIR)
 set(OMP_INCLUDE_DIR /usr/local/include)
-endif()
-if (NOT DEFINED FLANN_LIB_DIR)
+set(JSONCPP_INCLUDE_DIR /usr/local/opt/jsoncpp/include)
 set(FLANN_LIB_DIR /usr/local/lib)
-endif()
-if (NOT DEFINED OMP_LIB_DIR)
 set(OMP_LIB_DIR /usr/local/lib)
-endif()
-if (NOT DEFINED FLANN_LFLAG)
+set(JSONCPP_LIB_DIR /usr/local/opt/jsoncpp/lib)
 set(FLANN_LFLAG -lflann)
-endif()
-if (NOT DEFINED OMP_LFLAG)
 set(OMP_LFLAG -lomp)
-endif()
+set(JSONCPP_LFLAG -ljsoncpp)
 ############################
 
 file(GLOB REGISTRATION_SOURCES "source/*.cpp")
@@ -45,3 +32,12 @@ target_link_directories(registration PRIVATE
 target_link_libraries(registration PRIVATE
         ${FLANN_LFLAG}
         ${OMP_LFLAG})
+
+add_executable(stitch stitch.cpp)
+target_include_directories(stitch PRIVATE ./include)
+target_link_libraries(stitch PRIVATE registration)
+target_include_directories(stitch PRIVATE ${EIGEN_INCLUDE_DIR} ${JSONCPP_INCLUDE_DIR})
+target_link_directories(stitch PRIVATE ${JSONCPP_LIB_DIR})
+target_link_libraries(stitch PRIVATE ${JSONCPP_LFLAG})
+
+install(TARGETS registration stitch DESTINATION ${PROJECT_SOURCE_DIR}/bin)

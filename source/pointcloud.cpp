@@ -341,8 +341,9 @@ std::shared_ptr<PointCloud> PointCloud::VoxelDownSample(
         double voxel_size) const {
     auto output = std::make_shared<PointCloud>();
     if (voxel_size <= 0.0) {
-        fprintf(stderr,"[VoxelDownSample] voxel_size <= 0.\n");
-        exit(1);
+        // fprintf(stderr,"[VoxelDownSample] voxel_size <= 0.\n");
+        // exit(1);
+        throw std::runtime_error("[VoxelDownSample] voxel_size <= 0.");
     }
     Eigen::Vector3d voxel_size3 =
             Eigen::Vector3d(voxel_size, voxel_size, voxel_size);
@@ -350,8 +351,9 @@ std::shared_ptr<PointCloud> PointCloud::VoxelDownSample(
     Eigen::Vector3d voxel_max_bound = GetMaxBound() + voxel_size3 * 0.5;
     if (voxel_size * std::numeric_limits<int>::max() <
         (voxel_max_bound - voxel_min_bound).maxCoeff()) {
-        fprintf(stderr, "[VoxelDownSample] voxel_size is too small.\n");
-        exit(1);
+        // fprintf(stderr, "[VoxelDownSample] voxel_size is too small.\n");
+        // exit(1);
+        throw std::runtime_error("[VoxelDownSample] voxel_size is too small.");
     }
     std::unordered_map< Eigen::Vector3i, AccumulatedPoint,
     hash_eigen<Eigen::Vector3i> > voxelindex_to_accpoint;
@@ -517,10 +519,9 @@ std::tuple<std::shared_ptr<PointCloud>, std::vector<size_t>>
 PointCloud::RemoveStatisticalOutliers(size_t nb_neighbors,
                                       double std_ratio) const {
     if (nb_neighbors < 1 || std_ratio <= 0) {
-        fprintf(stderr,
+        throw std::runtime_error(
                 "[RemoveStatisticalOutliers] Illegal input parameters, number "
-                "of neighbors and standard deviation ratio must be positive\n");
-                exit(1);
+                "of neighbors and standard deviation ratio must be positive");
     }
     if (points_.size() == 0) {
         return std::make_tuple(std::make_shared<PointCloud>(),

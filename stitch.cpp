@@ -68,8 +68,9 @@ int main(int argc, char** argv) {
               estimation_type = std::make_shared<TransformationEstimationPointToPlane>();
               printf("Performing Point-to-Plane ICP Registration...\n");
           } else {
-              printf("Could not interpret ICP Registration Estimation Type\n");
-              exit(1);
+              throw std::runtime_error("Could not interpret ICP Registration Estimation Type");
+              // printf("Could not interpret ICP Registration Estimation Type\n");
+              // exit(1);
           }
 
           icp_result = RegistrationICP(*source_d, *target_d,
@@ -87,8 +88,9 @@ int main(int argc, char** argv) {
           } else if (kernel_type == "L1") {
               kernel = std::make_shared<L1Loss>();
           } else {
-              printf("Could not interpret robust kernel type\n");
-              exit(1);
+              throw std::runtime_error("Could not interpret robust kernel type");
+              // printf("Could not interpret robust kernel type\n");
+              // exit(1);
           }
 
           TransformationEstimationForColoredICP estimation(lambda_geometric, kernel);
@@ -131,8 +133,9 @@ int main(int argc, char** argv) {
       } else if (ransac_type == "PointToPlane") {
           estimation_type = &point2plane_estimation;
       } else {
-          printf("Could not interpret RANSAC Registration Estimation Type\n");
-          exit(1);
+          throw std::runtime_error("Could not interpret RANSAC Registration Estimation Type");
+          // printf("Could not interpret RANSAC Registration Estimation Type\n");
+          // exit(1);
       }
 
       RegistrationResult ransac_result;
@@ -159,8 +162,9 @@ int main(int argc, char** argv) {
               ransac_param);
 
       } else {
-          printf("Could not interpret RANSAC Registration Base\n");
-          exit(1);
+          throw std::runtime_error("Could not interpret RANSAC Registration Base");
+          // printf("Could not interpret RANSAC Registration Base\n");
+          // exit(1);
       }
 
       source->Transform(ransac_result.transformation_);
@@ -212,9 +216,9 @@ int main(int argc, char** argv) {
       std::cout << fast_result.inlier_rmse_ << std::endl;
 
   } else {
-
-      printf("Could not interpret Registration Type\n");
-      exit(1);
+      throw std::runtime_error("Could not interpret Registration Type");
+      // printf("Could not interpret Registration Type\n");
+      // exit(1);
   }
 
   exit(0);

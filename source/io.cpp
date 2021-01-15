@@ -24,8 +24,9 @@ void ReadXXX(const std::string& filename, std::vector<Eigen::Vector3d>& points,
   } else if (filename.compare(filename.size()-4,4,".ply")==0) {
 	ReadPLY(filename, points, normals, colors);
   } else {
-    fprintf(stderr,"could not recognize file extension\n");
-    exit(1);
+    // fprintf(stderr,"could not recognize file extension\n");
+    // exit(1);
+    throw std::runtime_error("could not recognize file extension");
   }
   return;
 }
@@ -36,8 +37,9 @@ void ReadSTL(const std::string& filename, std::vector<Eigen::Vector3d>& points,
 
   FILE* fp = fopen(filename.c_str(),"rb");
   if (fp == NULL) {
-    printf("failed to open file\n");
-    exit(1);
+    // printf("failed to open file\n");
+    // exit(1);
+    throw std::runtime_error("failed to open file");
   }
   char header[80];
   fread(header,sizeof(char),80,fp);
@@ -71,8 +73,9 @@ void ReadPCD(const std::string& filename, std::vector<Eigen::Vector3d>& points,
 
   FILE* fp = fopen(filename.c_str(), "rb");
   if (fp == NULL) {
-    fprintf(stderr, "Could not read file %s\n", filename.c_str());
-    exit(1);
+    // fprintf(stderr, "Could not read file %s\n", filename.c_str());
+    // exit(1);
+    throw std::runtime_error("could not read .pcd file");
   }
 
   unsigned long size;
@@ -177,16 +180,19 @@ void ReadXYZM(const std::string& filename, std::vector<Eigen::Vector3d>& points,
 
   FILE* fp = fopen(filename.c_str(),"rb");
   if (fp == NULL) {
-    fprintf(stderr,"failed to open file\n");
-    exit(1);
+    // fprintf(stderr,"failed to open file\n");
+    // exit(1);
+    throw std::runtime_error("failed to open .xyzm file");
   }
   int height;
   int width;
   int ret = fscanf(fp, "image size width x height = %d x %d", &width, &height);
   if (ret!=2) {
-    printf("unsupported file format\n");
+    // printf("unsupported file format\n");
+    // fclose(fp);
+    // exit(1);
     fclose(fp);
-    exit(1);
+    throw std::runtime_error("unsupported file format");
   }
   while(fgetc(fp)==0);
   fseek(fp,-1,SEEK_CUR);
@@ -234,8 +240,9 @@ void ReadPLY(const std::string& filename, std::vector<Eigen::Vector3d>& points,
 
     FILE* fp = fopen(filename.c_str(), "rb");
     if (fp == NULL) {
-        fprintf(stderr, "could not open file\n");
-        exit(1);
+        // fprintf(stderr, "could not open file\n");
+        // exit(1);
+        throw std::runtime_error("could not open .ply file");
     }
 
     char buffer[100];
@@ -316,8 +323,10 @@ void ReadPLY(const std::string& filename, std::vector<Eigen::Vector3d>& points,
       } else if (strcmp(property_type,"uchar")==0) {
           byte_size += sizeof(unsigned char);
       } else {
-        fprintf(stderr,"unknown property type\n");
-        exit(1);
+        // fprintf(stderr,"unknown property type\n");
+        // exit(1);
+        fclose(fp);
+        throw std::runtime_error("unknown property type");
       }
       fgets(buffer, 99, fp);
     }
@@ -425,8 +434,9 @@ void ReadPLY(const std::string& filename, std::vector<Eigen::Vector3d>& points,
           sscanf(buffer, "%lf %lf %lf", &points[i][0], &points[i][1], &points[i][2]);
         }
     } else {
-        fprintf(stderr, "unknown format\n");
-        exit(1);
+        // fprintf(stderr, "unknown format\n");
+        // exit(1);
+        throw std::runtime_error("unknown format");
     }
 
     fclose(fp);
