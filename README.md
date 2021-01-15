@@ -17,12 +17,6 @@ mkdir build && cd build && cmake ..
 ## Usage
 Include ```pointcloud.h``` and ```io.h``` to read point clouds from .ply and .stl files. Include ```registration.h``` to perform registration. Include ```feature.h``` to compute FPFH features of a point cloud.
 
-## Coming soon
-run the following command to build the stitch app (must build the dynamic library first)
-```bash
-make stitch
-```
-
 run the following command to run registration on pointclouds
 ```bash
 ./stitch config.json
